@@ -20,10 +20,12 @@ import Toast, { BaseToast } from 'react-native-toast-message';
 import { useWindowDimensions } from "react-native";
 import CalendarView from "./CalendarView";
 import { useTaskList } from "../hooks/useTaskList";
+import { useSyncTasks } from "../hooks/useSyncTasks";
 import { Task } from "../types/types";
 
 const HomeScreen: React.FC = () => {
   const { tasks, addTask, toggleTask, deleteTask, updateTask, reorderTasks } = useTaskList();
+  const { syncing, syncError } = useSyncTasks(addTask, tasks.length);
   const [taskInput, setTaskInput] = useState("");
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
