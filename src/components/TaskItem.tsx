@@ -11,7 +11,8 @@ interface Task {
   completed: boolean;
   selected?: boolean;
   priority?: ThemeColors;
-  category?: string; 
+  category?: string;
+  type?: string;
   recurrence?: string;
   dueDate?: string;
   details?: string;
