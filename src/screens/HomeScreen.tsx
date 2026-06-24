@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
-import { hs, vs, ms } from '../utils/responsive'; 
+import { hs, vs, ms } from '../utils/responsive';
 
 import {
   View,
@@ -11,131 +11,49 @@ import {
   StatusBar,
 } from "react-native";
 
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import TaskItem from "../components/TaskItem";
-import { fetchInitialTasks } from "../services/api";
-import { theme } from "../theme"; 
+import { theme } from "../theme";
 import DraggableFlatList from "react-native-draggable-flatlist";
 import TaskDetailsModal from "../components/TaskDetailsModal";
 import { Picker } from "@react-native-picker/picker";
 import Toast, { BaseToast } from 'react-native-toast-message';
 import { useWindowDimensions } from "react-native";
-import CalendarView from "./CalendarView"; 
-
-
-export interface Task {
-  id: number;
-  title: string;
-  completed: boolean;
-  selected?: boolean;
-  priority?:
-    | "text"
-    | "background"
-    | "modalBackground"
-    | "selectorBackground"
-    | "primary"
-    | "secondary"
-    | "inputBackground"
-    | "border"
-    | "danger"
-    | "completedText"
-    | "urgent"
-    | "important"
-    | "remember"
-    | "no-urgency";
-  type?: string;
-  dueDate?: string;
-  details?: string;
-  relatedTasks?: number[];
-}
+import CalendarView from "./CalendarView";
+import { useTaskList } from "../hooks/useTaskList";
+import { useSyncTasks } from "../hooks/useSyncTasks";
+import { Task } from "../types/types";
 
 const HomeScreen: React.FC = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const { tasks, addTask, toggleTask, deleteTask, updateTask, reorderTasks } = useTaskList();
+  const { syncing, syncError } = useSyncTasks(addTask, tasks.length);
   const [taskInput, setTaskInput] = useState("");
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
-  const [showCalendar, setShowCalendar] = useState(false); 
+  const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'completed'>('all');
+  const [showCalendar, setShowCalendar] = useState(false);
   const [selectedDay, setSelectedDay] = useState<{ dateString: string; day: number; month: number; year: number; } | null>(null);
 
-  const { width } = useWindowDimensions()
+  const { width } = useWindowDimensions();
 
-  useEffect(() => {
-    const initializeTasks = async () => {
-      try {
-        const savedTasks = await AsyncStorage.getItem("tasks");
-        if (!savedTasks) {
-          const apiTasks = await fetchInitialTasks();
-          setTasks(apiTasks);
-          await AsyncStorage.setItem("tasks", JSON.stringify(apiTasks));
-        } else {
-          setTasks(JSON.parse(savedTasks));
-        }
-      } catch (error) {
-        console.error("Erro ao carregar tarefas:", error);
-      }
-    };
-    initializeTasks();
-  }, []);
-
-  useEffect(() => {
-    const saveTasks = async () => {
-      try {
-        await AsyncStorage.setItem("tasks", JSON.stringify(tasks));
-      } catch (error) {
-        console.error("Erro ao salvar tarefas:", error);
-      }
-    };
-    saveTasks();
-  }, [tasks]);
-
-const addTask = () => {
-  if (taskInput.trim()) {
-    const newTask: Task = {
-      id: Date.now(),
-      title: taskInput.trim(),
-      completed: false,
-      priority: "no-urgency",
-      type: "others",
-      dueDate: undefined, 
-      details: undefined,
-    };
-    setTasks(prevTasks => [...prevTasks, newTask]);
-    setTaskInput("");
-    setPriorityFilter(null); 
-    setTypeFilter(null);
-
-    Toast.show({
-      type: "success", 
-      text1: "Tarefa Adicionada!",
-      text2: `Tarefa: ${newTask.title}`,
-      position: "top", 
-      visibilityTime: 5000,
-      autoHide: true,
-      text1Style: {
-        fontWeight: 800,
-        fontSize: 20,
-      },
-      text2Style: {
-        fontSize: 16
-      },
-    });
-  } else {
-    console.log('TaskInput está vazio. Nenhuma tarefa adicionada.'); 
-  }
-};
-
-  const removeTask = (id: number) => {
-    setTasks(tasks.filter((task) => task.id !== id));
-  };
-
-  const toggleTask = (id: number) => {
-    setTasks(
-      tasks.map((task) =>
-        task.id === id ? { ...task, completed: !task.completed } : task
-      )
-    );
+  const handleAddTask = () => {
+    if (taskInput.trim()) {
+      addTask(taskInput.trim());
+      setTaskInput("");
+      setPriorityFilter(null);
+      setTypeFilter(null);
+      Toast.show({
+        type: "success",
+        text1: "Tarefa Adicionada!",
+        text2: `Tarefa: ${taskInput.trim()}`,
+        position: "top",
+        visibilityTime: 5000,
+        autoHide: true,
+        text1Style: { fontWeight: 800, fontSize: 20 },
+        text2Style: { fontSize: 16 },
+      });
+    }
   };
 
   const handleDayPress = (day: { dateString: string; day: number; month: number; year: number; }) => {
@@ -161,13 +79,16 @@ const addTask = () => {
     const matchesPriority = !priorityFilter || task.priority === priorityFilter;
     const matchesType = !typeFilter || task.type === typeFilter;
     let matchesDate = true; 
-    if (selectedDay) { 
+    if (selectedDay) {
         matchesDate = !!task.dueDate && task.dueDate === selectedDay.dateString;
-    } else {
-        console.log("Nenhum selectedDay.dateString (filtro de data inativo).");
     }
     
-    return matchesPriority && matchesType && matchesDate;
+    const matchesStatus =
+      filterStatus === 'all' ||
+      (filterStatus === 'completed' && task.completed) ||
+      (filterStatus === 'pending' && !task.completed);
+
+    return matchesPriority && matchesType && matchesDate && matchesStatus;
   });
 
   const sortedTasks = [...filteredTasks].sort((a, b) => {
@@ -185,8 +106,6 @@ const addTask = () => {
       const dateB = new Date(b.dueDate + 'T12:00:00');
 
       return dateB.getTime() - dateA.getTime();
-
-      return 0;
   });
 
   return (
@@ -206,9 +125,9 @@ const addTask = () => {
           }}
           placeholder="Adicionar nova tarefa"
           placeholderTextColor={theme.colors.completedText}
-          onSubmitEditing={addTask}
+          onSubmitEditing={handleAddTask}
         />
-        <TouchableOpacity style={styles.addButton} onPress={addTask}>
+        <TouchableOpacity style={styles.addButton} onPress={handleAddTask}>
           <Text style={styles.addButtonText}>+</Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -260,6 +179,24 @@ const addTask = () => {
         </View>
       </View>
 
+      <View style={styles.statusFilterContainer}>
+        {(['all', 'pending', 'completed'] as const).map((status) => {
+          const labels = { all: 'Todas', pending: 'Pendentes', completed: 'Concluídas' };
+          const active = filterStatus === status;
+          return (
+            <TouchableOpacity
+              key={status}
+              style={[styles.statusFilterButton, active && styles.statusFilterButtonActive]}
+              onPress={() => setFilterStatus(status)}
+            >
+              <Text style={[styles.statusFilterText, active && styles.statusFilterTextActive]}>
+                {labels[status]}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
       {/* Renderização Condicional: Calendário OU Lista de Tarefas */}
       {showCalendar && (
         <View style={styles.calendarContainer}>
@@ -281,12 +218,14 @@ const addTask = () => {
       {!showCalendar && (
         <>
           <DraggableFlatList
+            key={filterStatus}
             data={sortedTasks}
+            extraData={sortedTasks}
             renderItem={({ item, drag }) => (
               <TaskItem
                 task={item}
                 onToggle={() => toggleTask(item.id)}
-                onDelete={() => removeTask(item.id)}
+                onDelete={() => deleteTask(item.id)}
                 onLongPress={drag}
                 onPressDetails={() => {
                   setSelectedTask(item);
@@ -295,7 +234,7 @@ const addTask = () => {
               />
             )}
             keyExtractor={(item) => item.id.toString()}
-            onDragEnd={({ data }) => setTasks(data)}
+            onDragEnd={({ data }) => reorderTasks(data)}
             contentContainerStyle={styles.listContent}
           />
 
@@ -311,9 +250,7 @@ const addTask = () => {
               }
             }
             onSave={(updatedTask) => {
-              setTasks(
-                tasks.map((t) => (t.id === updatedTask.id ? updatedTask : t))
-              );
+              updateTask(updatedTask);
               setModalVisible(false);
             }}
             onClose={() => setModalVisible(false)}
@@ -466,6 +403,33 @@ const styles = StyleSheet.create({
   clearDateFilterText: {
     color: theme.colors.primary,
     fontSize: 14,
+    fontWeight: 'bold',
+  },
+  statusFilterContainer: {
+    flexDirection: 'row',
+    gap: theme.spacing.s,
+    marginBottom: theme.spacing.m,
+  },
+  statusFilterButton: {
+    flex: 1,
+    paddingVertical: theme.spacing.s,
+    borderRadius: theme.radii.m,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.inputBackground,
+    alignItems: 'center',
+  },
+  statusFilterButtonActive: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
+  },
+  statusFilterText: {
+    color: theme.colors.text,
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  statusFilterTextActive: {
+    color: theme.colors.background,
     fontWeight: 'bold',
   },
 });

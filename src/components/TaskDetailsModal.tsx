@@ -120,14 +120,15 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
     onSave({ ...formData, recurrence: finalType });
 
     // Limpa os estados
-    setFormData({
-    title: '',
-    details: '',
-    priority: '',
-    category: "Selecione Categoria",
-    dueDate: undefined,
-    recurrence: "Selecione Periodicidade",
-    });
+    setFormData((prev) => ({
+      ...prev,
+      title: '',
+      details: '',
+      priority: undefined,
+      category: "Selecione Categoria",
+      dueDate: undefined,
+      recurrence: "Selecione Periodicidade",
+    }));
 
     setCustomValue('');
     setShowDatePicker(false);
