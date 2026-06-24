@@ -1,13 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-
-const API_URL = 'https://jsonplaceholder.typicode.com/todos?_limit=10';
-
-interface RemoteTask {
-  id: number;
-  title: string;
-  completed: boolean;
-}
+import { apiService } from '../services/api';
 
 export function useSyncTasks(
   addTask: (title: string) => void,
@@ -23,8 +16,8 @@ export function useSyncTasks(
       setSyncing(true);
       setSyncError(null);
       try {
-        const response = await axios.get<RemoteTask[]>(API_URL);
-        response.data.forEach((task) => addTask(task.title));
+        const remoteTasks = await apiService.fetchRemoteTasks();
+        remoteTasks.forEach((task) => addTask(task.title));
       } catch (error) {
         if (axios.isAxiosError(error)) {
           setSyncError(`Erro ao sincronizar: ${error.message}`);

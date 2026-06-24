@@ -1,9 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Task } from '../types/types';
-import { fetchInitialTasks } from '../services/api';
-
-const STORAGE_KEY = '@tasks';
+import { storageService } from '../services/storageService';
+import { apiService } from '../services/api';
 
 export function useTaskList() {
   const [tasks, setTasksState] = useState<Task[]>([]);
@@ -13,13 +11,13 @@ export function useTaskList() {
   useEffect(() => {
     const load = async () => {
       try {
-        const stored = await AsyncStorage.getItem(STORAGE_KEY);
+        const stored = await storageService.getTasks();
         if (stored) {
-          setTasksState(JSON.parse(stored));
+          setTasksState(stored);
         } else {
-          const apiTasks = await fetchInitialTasks();
+          const apiTasks = await apiService.fetchInitialTasks();
           setTasksState(apiTasks);
-          await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(apiTasks));
+          await storageService.saveTasks(apiTasks);
         }
       } catch {
         setError('Erro ao carregar tarefas.');
@@ -32,7 +30,7 @@ export function useTaskList() {
 
   const persist = useCallback(async (updated: Task[]) => {
     try {
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      await storageService.saveTasks(updated);
     } catch {
       setError('Erro ao salvar tarefas.');
     }
