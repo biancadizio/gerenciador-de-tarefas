@@ -31,6 +31,7 @@ const HomeScreen: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
+  const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'completed'>('all');
   const [showCalendar, setShowCalendar] = useState(false);
   const [selectedDay, setSelectedDay] = useState<{ dateString: string; day: number; month: number; year: number; } | null>(null);
 
@@ -78,13 +79,16 @@ const HomeScreen: React.FC = () => {
     const matchesPriority = !priorityFilter || task.priority === priorityFilter;
     const matchesType = !typeFilter || task.type === typeFilter;
     let matchesDate = true; 
-    if (selectedDay) { 
+    if (selectedDay) {
         matchesDate = !!task.dueDate && task.dueDate === selectedDay.dateString;
-    } else {
-        console.log("Nenhum selectedDay.dateString (filtro de data inativo).");
     }
     
-    return matchesPriority && matchesType && matchesDate;
+    const matchesStatus =
+      filterStatus === 'all' ||
+      (filterStatus === 'completed' && task.completed) ||
+      (filterStatus === 'pending' && !task.completed);
+
+    return matchesPriority && matchesType && matchesDate && matchesStatus;
   });
 
   const sortedTasks = [...filteredTasks].sort((a, b) => {
@@ -102,8 +106,6 @@ const HomeScreen: React.FC = () => {
       const dateB = new Date(b.dueDate + 'T12:00:00');
 
       return dateB.getTime() - dateA.getTime();
-
-      return 0;
   });
 
   return (
@@ -177,6 +179,24 @@ const HomeScreen: React.FC = () => {
         </View>
       </View>
 
+      <View style={styles.statusFilterContainer}>
+        {(['all', 'pending', 'completed'] as const).map((status) => {
+          const labels = { all: 'Todas', pending: 'Pendentes', completed: 'Concluídas' };
+          const active = filterStatus === status;
+          return (
+            <TouchableOpacity
+              key={status}
+              style={[styles.statusFilterButton, active && styles.statusFilterButtonActive]}
+              onPress={() => setFilterStatus(status)}
+            >
+              <Text style={[styles.statusFilterText, active && styles.statusFilterTextActive]}>
+                {labels[status]}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
       {/* Renderização Condicional: Calendário OU Lista de Tarefas */}
       {showCalendar && (
         <View style={styles.calendarContainer}>
@@ -198,7 +218,9 @@ const HomeScreen: React.FC = () => {
       {!showCalendar && (
         <>
           <DraggableFlatList
+            key={filterStatus}
             data={sortedTasks}
+            extraData={sortedTasks}
             renderItem={({ item, drag }) => (
               <TaskItem
                 task={item}
@@ -381,6 +403,33 @@ const styles = StyleSheet.create({
   clearDateFilterText: {
     color: theme.colors.primary,
     fontSize: 14,
+    fontWeight: 'bold',
+  },
+  statusFilterContainer: {
+    flexDirection: 'row',
+    gap: theme.spacing.s,
+    marginBottom: theme.spacing.m,
+  },
+  statusFilterButton: {
+    flex: 1,
+    paddingVertical: theme.spacing.s,
+    borderRadius: theme.radii.m,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.inputBackground,
+    alignItems: 'center',
+  },
+  statusFilterButtonActive: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
+  },
+  statusFilterText: {
+    color: theme.colors.text,
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  statusFilterTextActive: {
+    color: theme.colors.background,
     fontWeight: 'bold',
   },
 });
