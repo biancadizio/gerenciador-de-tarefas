@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   Modal,
-  Pressable,
   Platform,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
