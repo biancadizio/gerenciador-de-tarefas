@@ -196,6 +196,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
       animationType="slide"
       transparent
       onRequestClose={onClose}
+      accessibilityViewIsModal
     >
         <TouchableOpacity 
           style={styles.modalOverlay}
@@ -213,6 +214,8 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
               value={formData.title}
               onChangeText={(text) => setFormData({ ...formData, title: text })}
               maxLength={TASK_TITLE_MAX_LENGTH}
+              accessibilityLabel="Título da tarefa"
+              accessibilityHint="Edite o título da tarefa"
             />
 
             <Picker
@@ -221,6 +224,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
               style={styles.picker}
               dropdownIconColor={theme.colors.text}
               itemStyle={styles.pickerItem}
+              accessibilityLabel="Selecionar prioridade da tarefa"
             >
               <Picker.Item label="Selecione Prioridade" value={null} />
               <Picker.Item label="Urgente" value="urgent" />
@@ -237,6 +241,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
               onChange={(e) =>
                 setFormData({ ...formData, dueDate: e.target.value ? new Date(e.target.value).toISOString() : undefined })
               }
+              aria-label="Selecionar data de vencimento"
               style={{
                   backgroundColor: theme.colors.background,
                   padding: theme.spacing.m,
@@ -252,6 +257,8 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
               <TouchableOpacity
                 style={styles.dateButton}
                 onPress={() => setShowDatePicker(true)}
+                accessibilityRole="button"
+                accessibilityLabel="Selecionar data de vencimento"
               >
                 <Text style={styles.dateButtonText}>
                   {formData.dueDate
@@ -265,6 +272,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
                   value={formData.dueDate ? new Date(formData.dueDate) : new Date()}
                   mode="date"
                   display="default"
+                  accessibilityLabel="Calendário para selecionar data de vencimento"
                   onChange={(event, date) => {
                     setShowDatePicker(false);
                     if (date) {
@@ -282,6 +290,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
               style={styles.picker}
               dropdownIconColor={theme.colors.text}
               itemStyle={styles.pickerItem}
+              accessibilityLabel="Selecionar categoria da tarefa"
             >
               <Picker.Item label="Selecione Tipo" value={null} />
               <Picker.Item label="Profissional" value="professional" />
@@ -299,6 +308,8 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
             value={tagsInput}
             onChangeText={setTagsInput}
             maxLength={TASK_TAGS_MAX_LENGTH}
+            accessibilityLabel="Tags da tarefa"
+            accessibilityHint="Digite tags separadas por vírgula"
           />
 
 
@@ -308,6 +319,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
             style={styles.picker}
             dropdownIconColor={theme.colors.text}
             itemStyle={styles.pickerItem}
+            accessibilityLabel="Selecionar periodicidade da tarefa"
           >
             <Picker.Item label="Selecione Periodicidade" value={null} />
             <Picker.Item label="Não se repete" value="0" />
@@ -327,6 +339,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
             placeholder="Digite o número de dias de recorrência"
             value={customValue}
             onChangeText={handleCustomValueChange}
+            accessibilityLabel="Número de dias da recorrência personalizada"
           />
           )}
 
@@ -337,12 +350,15 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
             multiline
             value={formData.details}
             onChangeText={(text) => setFormData({ ...formData, details: text })}
+            accessibilityLabel="Detalhes da tarefa"
           />
 
             <View style={styles.buttonRow}>
               <TouchableOpacity 
                 style={[styles.button, styles.saveButton]}
                 onPress={handleSaveTitle}
+                accessibilityRole="button"
+                accessibilityLabel="Salvar alterações da tarefa"
               >
                 <Text style={styles.buttonText}>Salvar</Text>
               </TouchableOpacity>
@@ -350,6 +366,8 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
               <TouchableOpacity 
                 style={[styles.button, styles.cancelButton]}
                 onPress={onClose}
+                accessibilityRole="button"
+                accessibilityLabel="Cancelar edição da tarefa"
               >
                 <Text style={styles.buttonText}>Cancelar</Text>
               </TouchableOpacity>
