@@ -1,7 +1,14 @@
 import axios from 'axios';
 import { Task } from '../types/types';
 
-const BASE_URL = 'https://jsonplaceholder.typicode.com/todos';
+// Require BASE_URL from environment (e.g. .env or CI). Do not fall back.
+const BASE_URL = (() => {
+  if (typeof process !== 'undefined' && process.env && process.env.BASE_URL) {
+    return process.env.BASE_URL as string;
+  }
+
+  throw new Error('BASE_URL is not configured. Set BASE_URL in your environment (e.g. .env).');
+})();
 const INITIAL_TASKS_ERROR = 'Não foi possível carregar as tarefas iniciais.';
 const REMOTE_TASKS_ERROR = 'Não foi possível sincronizar as tarefas remotas.';
 
