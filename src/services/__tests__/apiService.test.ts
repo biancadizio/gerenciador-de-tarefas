@@ -30,10 +30,11 @@ describe('apiService.fetchInitialTasks', () => {
     expect(tasks[1].completed).toBe(true);
   });
 
-  it('returns empty array on fetch error', async () => {
+  it('throws a descriptive error on fetch error', async () => {
     mockFetch.mockRejectedValueOnce(new Error('Network error'));
-    const tasks = await apiService.fetchInitialTasks();
-    expect(tasks).toEqual([]);
+    await expect(apiService.fetchInitialTasks()).rejects.toThrow(
+      'Não foi possível carregar as tarefas iniciais. Verifique sua conexão e tente novamente.'
+    );
   });
 });
 
@@ -53,6 +54,8 @@ describe('apiService.fetchRemoteTasks', () => {
 
   it('throws on axios error so the caller can handle it', async () => {
     mockedAxios.get.mockRejectedValueOnce(new Error('Timeout'));
-    await expect(apiService.fetchRemoteTasks()).rejects.toThrow('Timeout');
+    await expect(apiService.fetchRemoteTasks()).rejects.toThrow(
+      'Não foi possível sincronizar as tarefas remotas. Verifique sua conexão e tente novamente.'
+    );
   });
 });

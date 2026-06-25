@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { apiService } from '../services/api';
 
 export function useSyncTasks(
   addTask: (title: string) => void,
-  existingTasksCount: number
+  existingTasksCount: number,
+  enabled = true
 ) {
   const [syncing, setSyncing] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!enabled) return;
     if (existingTasksCount > 0) return;
 
     const sync = async () => {
@@ -19,18 +20,17 @@ export function useSyncTasks(
         const remoteTasks = await apiService.fetchRemoteTasks();
         remoteTasks.forEach((task) => addTask(task.title));
       } catch (error) {
-        if (axios.isAxiosError(error)) {
-          setSyncError(`Erro ao sincronizar: ${error.message}`);
-        } else {
-          setSyncError('Erro inesperado ao sincronizar tarefas.');
-        }
+        const message = error instanceof Error
+          ? error.message
+          : 'Erro inesperado ao sincronizar tarefas.';
+        setSyncError(message);
       } finally {
         setSyncing(false);
       }
     };
 
     sync();
-  }, []);
+  }, [addTask, enabled, existingTasksCount]);
 
   return { syncing, syncError };
 }

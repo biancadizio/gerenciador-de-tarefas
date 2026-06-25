@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { hs, vs, ms } from '../utils/responsive';
 
@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Text,
   StatusBar,
+  ActivityIndicator,
 } from "react-native";
 
 import TaskItem from "../components/TaskItem";
@@ -24,8 +25,8 @@ import { useSyncTasks } from "../hooks/useSyncTasks";
 import { Task } from "../types/types";
 
 const HomeScreen: React.FC = () => {
-  const { tasks, addTask, toggleTask, deleteTask, updateTask, reorderTasks } = useTaskList();
-  const { syncing, syncError } = useSyncTasks(addTask, tasks.length);
+  const { tasks, loading, error, clearError, addTask, toggleTask, deleteTask, updateTask, reorderTasks } = useTaskList();
+  const { syncing, syncError } = useSyncTasks(addTask, tasks.length, !loading && !error);
   const [taskInput, setTaskInput] = useState("");
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -36,6 +37,30 @@ const HomeScreen: React.FC = () => {
   const [selectedDay, setSelectedDay] = useState<{ dateString: string; day: number; month: number; year: number; } | null>(null);
 
   const { width } = useWindowDimensions();
+
+  useEffect(() => {
+    if (!error) return;
+
+    Toast.show({
+      type: "error",
+      text1: "Erro ao carregar tarefas",
+      text2: error,
+      position: "top",
+      visibilityTime: 5000,
+    });
+  }, [error]);
+
+  useEffect(() => {
+    if (!syncError) return;
+
+    Toast.show({
+      type: "error",
+      text1: "Erro na sincronização",
+      text2: syncError,
+      position: "top",
+      visibilityTime: 5000,
+    });
+  }, [syncError]);
 
   const handleAddTask = () => {
     if (taskInput.trim()) {
@@ -115,6 +140,26 @@ const HomeScreen: React.FC = () => {
         <Text style={styles.title}>Minhas Tarefas</Text>
         <Text style={styles.subtitle}>Gerencie suas atividades</Text>
       </View>
+
+      {(error || syncError) && (
+        <View style={styles.feedbackContainer}>
+          <Text style={styles.feedbackText}>{error || syncError}</Text>
+          {error && (
+            <TouchableOpacity onPress={clearError} style={styles.feedbackButton}>
+              <Text style={styles.feedbackButtonText}>Ok</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+
+      {(loading || syncing) && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator color={theme.colors.primary} />
+          <Text style={styles.loadingText}>
+            {loading ? "Carregando tarefas..." : "Sincronizando tarefas..."}
+          </Text>
+        </View>
+      )}
 
       <View style={styles.inputContainer}>
         <TextInput
@@ -215,7 +260,7 @@ const HomeScreen: React.FC = () => {
         </View>
       )}
 
-      {!showCalendar && (
+      {!loading && !showCalendar && (
         <>
           <DraggableFlatList
             key={filterStatus}
@@ -276,6 +321,20 @@ const toastConfig = {
       }}
     />
   ),
+  error: (props: any) => (
+    <BaseToast
+      {...props}
+      style={{ borderLeftColor: theme.colors.danger }}
+      contentContainerStyle={{ paddingHorizontal: theme.spacing.m }}
+      text1Style={{
+        fontSize: 15,
+        fontWeight: '600'
+      }}
+      text2Style={{
+        fontSize: 13
+      }}
+    />
+  ),
 };
 
 const styles = StyleSheet.create({
@@ -296,6 +355,43 @@ const styles = StyleSheet.create({
   subtitle: {
     color: theme.colors.completedText,
     fontSize: 16,
+  },
+  feedbackContainer: {
+    backgroundColor: theme.colors.inputBackground,
+    borderColor: theme.colors.danger,
+    borderRadius: theme.radii.m,
+    borderWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: theme.spacing.s,
+    marginBottom: theme.spacing.m,
+    padding: theme.spacing.m,
+  },
+  feedbackText: {
+    flex: 1,
+    color: theme.colors.text,
+    fontSize: 14,
+  },
+  feedbackButton: {
+    backgroundColor: theme.colors.danger,
+    borderRadius: theme.radii.s,
+    paddingHorizontal: theme.spacing.m,
+    paddingVertical: theme.spacing.s,
+  },
+  feedbackButtonText: {
+    color: theme.colors.text,
+    fontSize: 13,
+    fontWeight: "bold",
+  },
+  loadingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: theme.spacing.s,
+    marginBottom: theme.spacing.m,
+  },
+  loadingText: {
+    color: theme.colors.completedText,
+    fontSize: 14,
   },
   inputContainer: {
     flexDirection: "row",
