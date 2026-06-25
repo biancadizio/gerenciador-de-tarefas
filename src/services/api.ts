@@ -37,6 +37,7 @@ export const apiService = {
         type: 'others',
         dueDate: undefined,
         details: undefined,
+        tags: [],
         relatedTasks: undefined,
       }));
     } catch (error) {

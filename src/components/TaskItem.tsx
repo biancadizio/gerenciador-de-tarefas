@@ -16,6 +16,7 @@ interface Task {
   recurrence?: string;
   dueDate?: string;
   details?: string;
+  tags?: string[];
   relatedTasks?: number[];
 }
 
@@ -54,12 +55,22 @@ const TaskItem: React.FC<TaskItemProps> = ({
 
         <View style={styles.taskMetaContainer}>
           {task.type && (
-            <Text style={styles.taskMetaText}>Tipo: {task.type}</Text>
+            <Text style={styles.taskMetaText}>Categoria: {task.type}</Text>
           )}
           {task.dueDate && (
             <Text style={styles.taskMetaText}>Vencimento: {task.dueDate}</Text>
           )}
         </View>
+
+        {!!task.tags?.length && (
+          <View style={styles.tagContainer}>
+            {task.tags.map((tag) => (
+              <View key={tag} style={styles.tag}>
+                <Text style={styles.tagText}>{tag}</Text>
+              </View>
+            ))}
+          </View>
+        )}
       </View>
       {/* Fim da MUDANÇA 2 e MUDANÇA 3 */}
 
@@ -124,6 +135,24 @@ const styles = StyleSheet.create({
   taskMetaText: { 
     color: theme.colors.completedText, 
     fontSize: 12,
+  },
+  tagContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: theme.spacing.s,
+    marginTop: theme.spacing.s,
+  },
+  tag: {
+    backgroundColor: theme.colors.background,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radii.s,
+    borderWidth: 1,
+    paddingHorizontal: theme.spacing.s,
+    paddingVertical: 2,
+  },
+  tagText: {
+    color: theme.colors.text,
+    fontSize: 11,
   },
   deleteButton: {
     marginLeft: theme.spacing.m,
