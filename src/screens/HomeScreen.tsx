@@ -337,12 +337,8 @@ const HomeScreen: React.FC = () => {
             onSave={(updatedTask) => {
               updateTask(updatedTask);
               setModalVisible(false);
-              setSelectedTask(null);
             }}
-            onClose={() => {
-              setModalVisible(false);
-              setSelectedTask(null);
-            }}
+            onClose={() => setModalVisible(false)}
             allTasks={tasks}
           />
         </>
