@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { Task } from '../types/types';
 
-const BASE_URL = 'https://jsonplaceholder.typicode.com/todos';
+// O Expo injeta automaticamente as variáveis que começam com EXPO_PUBLIC_
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 const INITIAL_TASKS_ERROR = 'Não foi possível carregar as tarefas iniciais.';
 const REMOTE_TASKS_ERROR = 'Não foi possível sincronizar as tarefas remotas.';
 
