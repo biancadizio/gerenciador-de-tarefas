@@ -1,28 +1,13 @@
 import axios from 'axios';
 import { Task } from '../types/types';
 
-// Load BASE_URL from environment when available (e.g. via .env or CI),
-// fall back to a safe default for local/dev if not provided.
-const FALLBACK_BASE_URL = 'https://jsonplaceholder.typicode.com/todos';
+// Require BASE_URL from environment (e.g. .env or CI). Do not fall back.
 const BASE_URL = (() => {
-  try {
-    // Prefer process.env if available (Node/Jest, some RN env plugins)
-    if (typeof process !== 'undefined' && process.env && process.env.BASE_URL) {
-      return process.env.BASE_URL as string;
-    }
-
-    // Allow overriding via a global variable for environments that inject it
-    // (keeps backwards compatibility for simple test setups).
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (typeof global !== 'undefined' && (global as any).BASE_URL) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return (global as any).BASE_URL as string;
-    }
-  } catch (e) {
-    // ignore and fallback
+  if (typeof process !== 'undefined' && process.env && process.env.BASE_URL) {
+    return process.env.BASE_URL as string;
   }
 
-  return FALLBACK_BASE_URL;
+  throw new Error('BASE_URL is not configured. Set BASE_URL in your environment (e.g. .env).');
 })();
 const INITIAL_TASKS_ERROR = 'Não foi possível carregar as tarefas iniciais.';
 const REMOTE_TASKS_ERROR = 'Não foi possível sincronizar as tarefas remotas.';
