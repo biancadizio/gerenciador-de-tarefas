@@ -14,6 +14,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ onDayPress, markedDates }) 
     <Calendar
       onDayPress={onDayPress} 
       markedDates={markedDates} 
+      accessibilityLabel="Calendário de tarefas"
       theme={{
         backgroundColor: theme.colors.background,
         calendarBackground: theme.colors.inputBackground,

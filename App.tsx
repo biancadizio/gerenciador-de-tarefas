@@ -10,7 +10,11 @@ import Toast from 'react-native-toast-message';
 
 const Stack = createStackNavigator();
 
-
+/**
+ * Root application component.
+ * Provides gesture handling, navigation, global status bar styling, and toast
+ * notifications for the task manager.
+ */
 const App = () => {
   return (
     <GestureHandlerRootView style={{ flex: 1, height: '100%' }}>
