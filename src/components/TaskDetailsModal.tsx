@@ -66,66 +66,77 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
     setCustomValue(value);
   };
 
-  // Ao salvar, se for personalizado, usamos customValue como type
-  const handleSave = () => {
-    const parsedValue = parseInt(customValue, 10);
+  const handleSaveTitle = () => {
+    const validationError = validateTaskTitle(formData.title);
 
-    // Validações obrigatórias
-    if (!formData.title || formData.title.trim() === '') {
-      alert('O título da tarefa é obrigatório.');
+    if (validationError) {
+      alert(validationError);
       return;
     }
-
-    if (!formData.priority) {
-      alert('Selecione uma prioridade.');
-      return;
-    }
-
-    // Validação: Data dentro de 10 anos para frente e para trás
-    if (formData.dueDate) {
-      const dueDate = new Date(formData.dueDate);
-      const now = new Date();
-      const minDate = new Date(now.getFullYear() - 10, now.getMonth(), now.getDate());
-      const maxDate = new Date(now.getFullYear() + 10, now.getMonth(), now.getDate());
-
-      if (dueDate < minDate || dueDate > maxDate) {
-        alert('A data deve estar entre 10 anos atrás e 10 anos no futuro.');
-        return;
-      }
-    } else {
-      alert('Digite uma data.');
-      return;
-    }
-
-    if (!formData.category) {
-      alert('Selecione uma categoria.');
-      return;
-    }
-    
-    if (!formData.recurrence) {
-      alert('Selecione uma periodicidade.');
-      return;
-    }
-
-    // Validação de valor personalizado
-    if (formData.recurrence === 'custom') {
-      if (isNaN(parsedValue) || parsedValue < 0) {
-        alert('Informe um número válido maior ou igual a 0 para a recorrência.');
-        return;
-      }
-    }
-
-    const finalType =
-      formData.recurrence === 'custom'
-        ? parsedValue.toString()
-        : formData.recurrence;
 
     onSave({
       ...formData,
       title: sanitizeTaskTitle(formData.title),
-      recurrence: finalType,
       tags: parseTaskTags(tagsInput),
     });
+  };
+
+ 
+  // Ao salvar, se for personalizado, usamos customValue como type
+ const handleSave = () => {
+  const parsedValue = parseInt(customValue);
+
+  // Validações obrigatórias
+  if (!formData.title || formData.title.trim() === '') {
+    alert('O título da tarefa é obrigatório.');
+    return;
+  }
+
+  if (!formData.priority) {
+    alert('Selecione uma prioridade.');
+    return;
+  }
+
+  // Validação: Data dentro de 10 anos para frente e para trás
+  if (formData.dueDate) {
+    const dueDate = new Date(formData.dueDate);
+    const now = new Date();
+    const minDate = new Date(now.getFullYear() - 10, now.getMonth(), now.getDate());
+    const maxDate = new Date(now.getFullYear() + 10, now.getMonth(), now.getDate());
+
+    if (dueDate < minDate || dueDate > maxDate) {
+      alert('A data deve estar entre 10 anos atrás e 10 anos no futuro.');
+      return;
+    }
+  }
+  else{
+    alert('Digite uma data.');
+  }
+
+  if (!formData.category) {
+    alert('Selecione uma categoria.');
+    return;
+  }
+  
+  if (!formData.recurrence) {
+    alert('Selecione uma periodicidade.');
+    return;
+  }
+
+  // Validação de valor personalizado
+  if (formData.recurrence === 'custom') {
+    if (isNaN(parsedValue) || parsedValue < 0) {
+      alert('Informe um número válido maior ou igual a 0 para a recorrência.');
+      return;
+    }
+  }
+
+  const finalType =
+    formData.recurrence === 'custom'
+      ? parsedValue.toString()
+      : formData.recurrence;
+
+    onSave({ ...formData, recurrence: finalType });
 
     // Limpa os estados
     setFormData((prev) => ({
@@ -133,14 +144,17 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
       title: '',
       details: '',
       priority: undefined,
-      category: 'Selecione Categoria',
+      category: "Selecione Categoria",
       dueDate: undefined,
-      recurrence: 'Selecione Periodicidade',
+      recurrence: "Selecione Periodicidade",
     }));
 
     setCustomValue('');
     setShowDatePicker(false);
+
   };
+
+
 
   const handleClose = () => {
     setFormData(task); // Reset form to original task data
@@ -172,12 +186,12 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
       visible={visible}
       animationType="slide"
       transparent
-      onRequestClose={handleClose}
+      onRequestClose={onClose}
     >
         <TouchableOpacity 
           style={styles.modalOverlay}
           activeOpacity={1} 
-          onPressOut={handleClose} 
+          onPressOut={onClose} 
         >
           {/* REMOVIDO: onStartShouldSetResponder={() => true} do View styles.modalContent */}
           <View style={styles.modalContent}> 
@@ -319,14 +333,14 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
             <View style={styles.buttonRow}>
               <TouchableOpacity 
                 style={[styles.button, styles.saveButton]}
-                onPress={handleSave}
+                onPress={handleSaveTitle}
               >
                 <Text style={styles.buttonText}>Salvar</Text>
               </TouchableOpacity>
 
               <TouchableOpacity 
                 style={[styles.button, styles.cancelButton]}
-                onPress={handleClose}
+                onPress={onClose}
               >
                 <Text style={styles.buttonText}>Cancelar</Text>
               </TouchableOpacity>
