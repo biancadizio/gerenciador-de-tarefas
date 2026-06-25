@@ -1,6 +1,14 @@
 import { useState, useEffect } from 'react';
 import { apiService } from '../services/api';
 
+/**
+ * Synchronizes starter tasks from the remote API when the local list is empty.
+ *
+ * @param addTask - Callback used to insert each remote task title locally.
+ * @param existingTasksCount - Current number of local tasks.
+ * @param enabled - Guards sync until the initial local load has completed.
+ * @returns Sync progress and user-facing error message.
+ */
 export function useSyncTasks(
   addTask: (title: string) => void,
   existingTasksCount: number,

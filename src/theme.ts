@@ -1,5 +1,9 @@
 import { hs, vs, ms } from './utils/responsive';
 
+/**
+ * Shared visual tokens for colors, spacing, radii, and font sizes.
+ * Components import this object to keep the dark interface consistent.
+ */
 export const theme = {
   colors: {
     background: '#0A0A0A',

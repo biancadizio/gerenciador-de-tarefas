@@ -5,6 +5,10 @@ import { theme } from "../theme"
 interface CalendarViewProps extends Pick<CalendarProps, 'onDayPress' | 'markedDates'> {
 }
 
+/**
+ * Themed calendar wrapper used to select due-date filters and mark days that
+ * contain tasks.
+ */
 const CalendarView: React.FC<CalendarViewProps> = ({ onDayPress, markedDates }) => {
   return (
     <Calendar
