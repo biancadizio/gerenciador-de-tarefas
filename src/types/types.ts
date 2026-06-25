@@ -10,5 +10,6 @@ export interface Task {
     dueDate?: string;
     details?: string;
     tags?: string[];
+    notificationId?: string;
     relatedTasks?: number[];
   }
