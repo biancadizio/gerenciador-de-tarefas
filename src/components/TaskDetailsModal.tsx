@@ -12,6 +12,7 @@ import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker'; 
 import { theme } from '../theme';
 import { Task } from '../types/types'; 
+import { sanitizeTaskTitle, TASK_TITLE_MAX_LENGTH, validateTaskTitle } from '../utils/taskValidation';
 
 
 
@@ -60,6 +61,20 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
   // Atualiza valor personalizado manualmente digitado
   const handleCustomValueChange = (value: string) => {
     setCustomValue(value);
+  };
+
+  const handleSaveTitle = () => {
+    const validationError = validateTaskTitle(formData.title);
+
+    if (validationError) {
+      alert(validationError);
+      return;
+    }
+
+    onSave({
+      ...formData,
+      title: sanitizeTaskTitle(formData.title),
+    });
   };
 
  
@@ -183,6 +198,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
               placeholderTextColor={theme.colors.completedText}
               value={formData.title}
               onChangeText={(text) => setFormData({ ...formData, title: text })}
+              maxLength={TASK_TITLE_MAX_LENGTH}
             />
 
             <Picker
@@ -303,7 +319,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
             <View style={styles.buttonRow}>
               <TouchableOpacity 
                 style={[styles.button, styles.saveButton]}
-                onPress={() => onSave(formData)}
+                onPress={handleSaveTitle}
               >
                 <Text style={styles.buttonText}>Salvar</Text>
               </TouchableOpacity>

@@ -23,6 +23,7 @@ import CalendarView from "./CalendarView";
 import { useTaskList } from "../hooks/useTaskList";
 import { useSyncTasks } from "../hooks/useSyncTasks";
 import { Task } from "../types/types";
+import { sanitizeTaskTitle, TASK_TITLE_MAX_LENGTH, validateTaskTitle } from "../utils/taskValidation";
 
 const HomeScreen: React.FC = () => {
   const { tasks, loading, error, clearError, addTask, toggleTask, deleteTask, updateTask, reorderTasks } = useTaskList();
@@ -63,22 +64,35 @@ const HomeScreen: React.FC = () => {
   }, [syncError]);
 
   const handleAddTask = () => {
-    if (taskInput.trim()) {
-      addTask(taskInput.trim());
-      setTaskInput("");
-      setPriorityFilter(null);
-      setTypeFilter(null);
+    const validationError = validateTaskTitle(taskInput);
+
+    if (validationError) {
       Toast.show({
-        type: "success",
-        text1: "Tarefa Adicionada!",
-        text2: `Tarefa: ${taskInput.trim()}`,
+        type: "error",
+        text1: "Não foi possível adicionar",
+        text2: validationError,
         position: "top",
-        visibilityTime: 5000,
-        autoHide: true,
-        text1Style: { fontWeight: 800, fontSize: 20 },
-        text2Style: { fontSize: 16 },
+        visibilityTime: 4000,
       });
+      return;
     }
+
+    const title = sanitizeTaskTitle(taskInput);
+
+    addTask(title);
+    setTaskInput("");
+    setPriorityFilter(null);
+    setTypeFilter(null);
+    Toast.show({
+      type: "success",
+      text1: "Tarefa Adicionada!",
+      text2: `Tarefa: ${title}`,
+      position: "top",
+      visibilityTime: 5000,
+      autoHide: true,
+      text1Style: { fontWeight: 800, fontSize: 20 },
+      text2Style: { fontSize: 16 },
+    });
   };
 
   const handleDayPress = (day: { dateString: string; day: number; month: number; year: number; }) => {
@@ -170,6 +184,7 @@ const HomeScreen: React.FC = () => {
           }}
           placeholder="Adicionar nova tarefa"
           placeholderTextColor={theme.colors.completedText}
+          maxLength={TASK_TITLE_MAX_LENGTH}
           onSubmitEditing={handleAddTask}
         />
         <TouchableOpacity style={styles.addButton} onPress={handleAddTask}>
