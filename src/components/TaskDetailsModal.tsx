@@ -12,6 +12,8 @@ import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker'; 
 import { theme } from '../theme';
 import { Task } from '../types/types'; 
+import { sanitizeTaskTitle, TASK_TITLE_MAX_LENGTH, validateTaskTitle } from '../utils/taskValidation';
+import { formatTaskTags, parseTaskTags, TASK_TAGS_MAX_LENGTH } from '../utils/taskTags';
 
 
 
@@ -33,10 +35,12 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
   const [formData, setFormData] = useState<Task>(task);  
   const [customValue, setCustomValue] = useState(''); // Armazena valor personalizado digitado pelo usuário (em dias)
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [tagsInput, setTagsInput] = useState('');
 
   // Quando o modal abre, inicializa os estados
   useEffect(() => {
     setFormData(task);
+    setTagsInput(formatTaskTags(task.tags));
 
     // Se a task tiver um tipo não padronizado, tratamos como ''
     if (!['0', '1', '7', '30', '180', '365'].includes(task.recurrence || '')) {
@@ -60,6 +64,21 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
   // Atualiza valor personalizado manualmente digitado
   const handleCustomValueChange = (value: string) => {
     setCustomValue(value);
+  };
+
+  const handleSaveTitle = () => {
+    const validationError = validateTaskTitle(formData.title);
+
+    if (validationError) {
+      alert(validationError);
+      return;
+    }
+
+    onSave({
+      ...formData,
+      title: sanitizeTaskTitle(formData.title),
+      tags: parseTaskTags(tagsInput),
+    });
   };
 
  
@@ -140,6 +159,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
   const handleClose = () => {
     setFormData(task); // Reset form to original task data
     setCustomValue('');
+    setTagsInput(formatTaskTags(task.tags));
     onClose(); // Close modal
   };
 
@@ -183,6 +203,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
               placeholderTextColor={theme.colors.completedText}
               value={formData.title}
               onChangeText={(text) => setFormData({ ...formData, title: text })}
+              maxLength={TASK_TITLE_MAX_LENGTH}
             />
 
             <Picker
@@ -262,6 +283,15 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
               <Picker.Item label="Outros" value="others" />
             </Picker>
 
+          <TextInput
+            style={styles.input}
+            placeholder="Tags"
+            placeholderTextColor={theme.colors.completedText}
+            value={tagsInput}
+            onChangeText={setTagsInput}
+            maxLength={TASK_TAGS_MAX_LENGTH}
+          />
+
 
           <Picker
             selectedValue={formData.recurrence}
@@ -303,7 +333,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
             <View style={styles.buttonRow}>
               <TouchableOpacity 
                 style={[styles.button, styles.saveButton]}
-                onPress={() => onSave(formData)}
+                onPress={handleSaveTitle}
               >
                 <Text style={styles.buttonText}>Salvar</Text>
               </TouchableOpacity>

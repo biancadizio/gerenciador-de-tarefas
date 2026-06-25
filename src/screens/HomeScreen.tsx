@@ -23,6 +23,7 @@ import CalendarView from "./CalendarView";
 import { useTaskList } from "../hooks/useTaskList";
 import { useSyncTasks } from "../hooks/useSyncTasks";
 import { Task } from "../types/types";
+import { sanitizeTaskTitle, TASK_TITLE_MAX_LENGTH, validateTaskTitle } from "../utils/taskValidation";
 
 const HomeScreen: React.FC = () => {
   const { tasks, loading, error, clearError, addTask, toggleTask, deleteTask, updateTask, reorderTasks } = useTaskList();
@@ -30,8 +31,9 @@ const HomeScreen: React.FC = () => {
   const [taskInput, setTaskInput] = useState("");
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
-  const [typeFilter, setTypeFilter] = useState<string | null>(null);
+  const [priorityFilter, setPriorityFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
+  const [tagFilter, setTagFilter] = useState("");
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'completed'>('all');
   const [showCalendar, setShowCalendar] = useState(false);
   const [selectedDay, setSelectedDay] = useState<{ dateString: string; day: number; month: number; year: number; } | null>(null);
@@ -63,22 +65,36 @@ const HomeScreen: React.FC = () => {
   }, [syncError]);
 
   const handleAddTask = () => {
-    if (taskInput.trim()) {
-      addTask(taskInput.trim());
-      setTaskInput("");
-      setPriorityFilter(null);
-      setTypeFilter(null);
+    const validationError = validateTaskTitle(taskInput);
+
+    if (validationError) {
       Toast.show({
-        type: "success",
-        text1: "Tarefa Adicionada!",
-        text2: `Tarefa: ${taskInput.trim()}`,
+        type: "error",
+        text1: "Não foi possível adicionar",
+        text2: validationError,
         position: "top",
-        visibilityTime: 5000,
-        autoHide: true,
-        text1Style: { fontWeight: 800, fontSize: 20 },
-        text2Style: { fontSize: 16 },
+        visibilityTime: 4000,
       });
+      return;
     }
+
+    const title = sanitizeTaskTitle(taskInput);
+
+    addTask(title);
+    setTaskInput("");
+    setPriorityFilter("");
+    setTypeFilter("");
+    setTagFilter("");
+    Toast.show({
+      type: "success",
+      text1: "Tarefa Adicionada!",
+      text2: `Tarefa: ${title}`,
+      position: "top",
+      visibilityTime: 5000,
+      autoHide: true,
+      text1Style: { fontWeight: 800, fontSize: 20 },
+      text2Style: { fontSize: 16 },
+    });
   };
 
   const handleDayPress = (day: { dateString: string; day: number; month: number; year: number; }) => {
@@ -99,10 +115,14 @@ const HomeScreen: React.FC = () => {
     return acc;
   }, {} as { [key: string]: { marked: boolean; dotColor: string } });
 
+  const availableTags = Array.from(
+    new Set(tasks.flatMap((task) => task.tags ?? []))
+  ).sort((a, b) => a.localeCompare(b));
 
   const filteredTasks = tasks.filter(task => {
     const matchesPriority = !priorityFilter || task.priority === priorityFilter;
     const matchesType = !typeFilter || task.type === typeFilter;
+    const matchesTag = !tagFilter || task.tags?.includes(tagFilter);
     let matchesDate = true; 
     if (selectedDay) {
         matchesDate = !!task.dueDate && task.dueDate === selectedDay.dateString;
@@ -113,7 +133,7 @@ const HomeScreen: React.FC = () => {
       (filterStatus === 'completed' && task.completed) ||
       (filterStatus === 'pending' && !task.completed);
 
-    return matchesPriority && matchesType && matchesDate && matchesStatus;
+    return matchesPriority && matchesType && matchesTag && matchesDate && matchesStatus;
   });
 
   const sortedTasks = [...filteredTasks].sort((a, b) => {
@@ -170,6 +190,7 @@ const HomeScreen: React.FC = () => {
           }}
           placeholder="Adicionar nova tarefa"
           placeholderTextColor={theme.colors.completedText}
+          maxLength={TASK_TITLE_MAX_LENGTH}
           onSubmitEditing={handleAddTask}
         />
         <TouchableOpacity style={styles.addButton} onPress={handleAddTask}>
@@ -194,7 +215,7 @@ const HomeScreen: React.FC = () => {
             dropdownIconColor={theme.colors.text}
             mode="dropdown"
           >
-            <Picker.Item label="Todas Prioridades" value={null} />
+            <Picker.Item label="Todas Prioridades" value="" />
             <Picker.Item label="Urgente" value="urgent" />
             <Picker.Item label="Importante" value="important" />
             <Picker.Item label="Lembrar" value="remember" />
@@ -203,7 +224,7 @@ const HomeScreen: React.FC = () => {
           </View>
         </View>
         <View style={styles.filterTitle}>
-          <Text style={styles.subtitle}>Tipos:</Text>
+          <Text style={styles.subtitle}>Categorias:</Text>
           <View style={styles.pickerContainer}>
             <Picker
               selectedValue={typeFilter}
@@ -212,7 +233,7 @@ const HomeScreen: React.FC = () => {
               dropdownIconColor={theme.colors.text}
               mode="dropdown"
             >
-              <Picker.Item label="Todos Tipos" value={null} />
+              <Picker.Item label="Todas Categorias" value="" />
               <Picker.Item label="Educação" value="educational" />
               <Picker.Item label="Saúde" value="health" />
               <Picker.Item label="Profissional" value="professional" />
@@ -221,6 +242,24 @@ const HomeScreen: React.FC = () => {
               <Picker.Item label="Outros" value="others" />
             </Picker>
           </View>
+        </View>
+      </View>
+
+      <View style={styles.tagFilterContainer}>
+        <Text style={styles.subtitle}>Tags:</Text>
+        <View style={styles.pickerContainer}>
+          <Picker
+            selectedValue={tagFilter}
+            onValueChange={(value) => setTagFilter(value)}
+            style={styles.picker}
+            dropdownIconColor={theme.colors.text}
+            mode="dropdown"
+          >
+            <Picker.Item label="Todas Tags" value="" />
+            {availableTags.map((tag) => (
+              <Picker.Item key={tag} label={tag} value={tag} />
+            ))}
+          </Picker>
         </View>
       </View>
 
@@ -263,7 +302,7 @@ const HomeScreen: React.FC = () => {
       {!loading && !showCalendar && (
         <>
           <DraggableFlatList
-            key={filterStatus}
+            key={`${filterStatus}-${priorityFilter || 'all'}-${typeFilter || 'all'}-${tagFilter || 'all'}`}
             data={sortedTasks}
             extraData={sortedTasks}
             renderItem={({ item, drag }) => (
@@ -292,6 +331,7 @@ const HomeScreen: React.FC = () => {
                 completed: false,
                 priority: "no-urgency",
                 type: "others",
+                tags: [],
               }
             }
             onSave={(updatedTask) => {
@@ -437,6 +477,10 @@ const styles = StyleSheet.create({
     width: '50%',
     gap: theme.spacing.s,
     marginTop: theme.spacing.m,
+  },
+  tagFilterContainer: {
+    gap: theme.spacing.s,
+    marginBottom: theme.spacing.m,
   },
   filterButton: {
     padding: theme.spacing.s,

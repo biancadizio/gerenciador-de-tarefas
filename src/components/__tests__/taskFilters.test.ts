@@ -13,6 +13,9 @@ const filterByPriority = (tasks: Task[], priority: string | null): Task[] =>
 const filterByType = (tasks: Task[], type: string | null): Task[] =>
   type ? tasks.filter(t => t.type === type) : tasks;
 
+const filterByTag = (tasks: Task[], tag: string | null): Task[] =>
+  tag ? tasks.filter(t => t.tags?.includes(tag)) : tasks;
+
 const sortByDueDate = (tasks: Task[]): Task[] =>
   [...tasks].sort((a, b) => {
     if (!a.dueDate && !b.dueDate) return 0;
@@ -92,6 +95,24 @@ describe('TaskItem — filterByType', () => {
     const result = filterByType(tasks, 'personal');
     expect(result).toHaveLength(1);
     expect(result[0].id).toBe(2);
+  });
+});
+
+describe('TaskItem — filterByTag', () => {
+  const tasks = [
+    makeTask({ id: 1, tags: ['casa', 'compras'] }),
+    makeTask({ id: 2, tags: ['estudos'] }),
+    makeTask({ id: 3, tags: [] }),
+  ];
+
+  it('returns all tasks when tag is null', () => {
+    expect(filterByTag(tasks, null)).toHaveLength(3);
+  });
+
+  it('returns only tasks containing the selected tag', () => {
+    const result = filterByTag(tasks, 'casa');
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe(1);
   });
 });
 

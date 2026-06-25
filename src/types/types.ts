@@ -9,6 +9,7 @@ export interface Task {
     recurrence?: string;
     dueDate?: string;
     details?: string;
+    tags?: string[];
+    notificationId?: string;
     relatedTasks?: number[];
   }
-

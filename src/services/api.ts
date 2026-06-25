@@ -37,6 +37,8 @@ export const apiService = {
         type: 'others',
         dueDate: undefined,
         details: undefined,
+        tags: [],
+        notificationId: undefined,
         relatedTasks: undefined,
       }));
     } catch (error) {
