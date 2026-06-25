@@ -5,26 +5,37 @@ import renderer from 'react-test-renderer';
 import TaskDetailsModal from '../TaskDetailsModal';
 import { Task } from '../../types/types';
 
-const createMockComponent = (name: string) => (props: any) => React.createElement('View', props, props.children);
-const PickerMock: any = createMockComponent('Picker');
-PickerMock.Item = createMockComponent('PickerItem');
+function createMockComponent(name: string) {
+  return (props: any) => React.createElement('View', props, props.children);
+}
 
-jest.mock('react-native', () => ({
-  View: createMockComponent('View'),
-  Text: createMockComponent('Text'),
-  TextInput: createMockComponent('TextInput'),
-  TouchableOpacity: createMockComponent('TouchableOpacity'),
-  StyleSheet: { create: () => ({}) },
-  Modal: createMockComponent('Modal'),
-  Platform: { OS: 'ios' },
-  Dimensions: {
-    get: () => ({ width: 390, height: 844 }),
-  },
-}));
+jest.mock('react-native', () => {
+  const PickerMock: any = createMockComponent('Picker');
+  PickerMock.Item = createMockComponent('PickerItem');
 
-jest.mock('@react-native-picker/picker', () => ({
-  Picker: PickerMock,
-}));
+  return {
+    View: createMockComponent('View'),
+    Text: createMockComponent('Text'),
+    TextInput: createMockComponent('TextInput'),
+    TouchableOpacity: createMockComponent('TouchableOpacity'),
+    StyleSheet: { create: () => ({}) },
+    Modal: createMockComponent('Modal'),
+    Platform: { OS: 'ios' },
+    Dimensions: {
+      get: () => ({ width: 390, height: 844 }),
+    },
+  };
+});
+
+jest.mock('@react-native-picker/picker', () => {
+  const createMockComponent = (name: string) => (props: any) => React.createElement('View', props, props.children);
+  const PickerMock: any = createMockComponent('Picker');
+  PickerMock.Item = createMockComponent('PickerItem');
+
+  return {
+    Picker: PickerMock,
+  };
+});
 
 jest.mock('@react-native-community/datetimepicker', () => createMockComponent('DateTimePicker'));
 
