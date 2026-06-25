@@ -2,6 +2,8 @@ import axios from 'axios';
 import { Task } from '../types/types';
 
 const BASE_URL = 'https://jsonplaceholder.typicode.com/todos';
+const INITIAL_TASKS_ERROR = 'Não foi possível carregar as tarefas iniciais.';
+const REMOTE_TASKS_ERROR = 'Não foi possível sincronizar as tarefas remotas.';
 
 interface RemoteTask {
   id: number;
@@ -9,10 +11,23 @@ interface RemoteTask {
   completed: boolean;
 }
 
+export function getApiErrorMessage(error: unknown, fallbackMessage: string): string {
+  if (axios.isAxiosError(error) || error instanceof Error) {
+    return `${fallbackMessage} Verifique sua conexão e tente novamente.`;
+  }
+
+  return fallbackMessage;
+}
+
 export const apiService = {
   fetchInitialTasks: async (): Promise<Task[]> => {
     try {
       const response = await fetch(`${BASE_URL}?_limit=5`);
+
+      if (response.ok === false) {
+        throw new Error(`Status ${response.status}`);
+      }
+
       const data: RemoteTask[] = await response.json();
       return data.map(task => ({
         id: task.id,
@@ -25,14 +40,17 @@ export const apiService = {
         relatedTasks: undefined,
       }));
     } catch (error) {
-      console.error('Erro ao buscar tarefas:', error);
-      return [];
+      throw new Error(getApiErrorMessage(error, INITIAL_TASKS_ERROR));
     }
   },
 
   fetchRemoteTasks: async (): Promise<RemoteTask[]> => {
-    const response = await axios.get<RemoteTask[]>(`${BASE_URL}?_limit=10`);
-    return response.data;
+    try {
+      const response = await axios.get<RemoteTask[]>(`${BASE_URL}?_limit=10`);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, REMOTE_TASKS_ERROR));
+    }
   },
 };
 
