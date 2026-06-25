@@ -1,3 +1,9 @@
+/**
+ * Domain model for a task shown and persisted by the app.
+ *
+ * `type` is used as the user-facing category, `tags` stores free-form labels,
+ * and `notificationId` links the task to an Expo local notification.
+ */
 export interface Task {
     id: number;
     title: string;

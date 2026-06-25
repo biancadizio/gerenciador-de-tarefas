@@ -21,13 +21,22 @@ interface Task {
 }
 
 interface TaskItemProps {
+  /** Task data rendered in the list row. */
   task: Task;
+  /** Toggles the completed state. */
   onToggle: () => void;
+  /** Deletes the task. */
   onDelete: () => void;
+  /** Starts drag-and-drop reordering. */
   onLongPress: () => void;
+  /** Opens the details modal for editing. */
   onPressDetails: () => void;
 }
 
+/**
+ * Renders a single task row with completion, metadata, tags, priority,
+ * details, deletion, and drag-and-drop controls.
+ */
 const TaskItem: React.FC<TaskItemProps> = ({ 
   task, 
   onToggle, 
@@ -35,16 +44,27 @@ const TaskItem: React.FC<TaskItemProps> = ({
   onLongPress,
   onPressDetails
 }) => {
+  const taskStatus = task.completed ? 'concluída' : 'pendente';
+
   return (
     <TouchableOpacity 
       onLongPress={onLongPress}
+      accessibilityRole="button"
+      accessibilityLabel={`Tarefa ${task.title}, ${taskStatus}`}
+      accessibilityHint="Pressione e segure para reordenar a tarefa"
       style={[
         styles.taskContainer,
         task.selected && styles.selectedTask,
         task.priority && { borderColor: theme.colors[task.priority] }
       ]}
     >
-      <TouchableOpacity onPress={onToggle} style={styles.checkBox}>
+      <TouchableOpacity
+        onPress={onToggle}
+        style={styles.checkBox}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: task.completed }}
+        accessibilityLabel={`${task.completed ? 'Desmarcar' : 'Marcar'} tarefa ${task.title} como concluída`}
+      >
         <Text style={styles.checkIcon}>{task.completed ? "✓" : "○"}</Text>
       </TouchableOpacity>
 
@@ -72,8 +92,6 @@ const TaskItem: React.FC<TaskItemProps> = ({
           </View>
         )}
       </View>
-      {/* Fim da MUDANÇA 2 e MUDANÇA 3 */}
-
       {task.priority && (
         <View style={[
           styles.priorityTag,
@@ -83,11 +101,21 @@ const TaskItem: React.FC<TaskItemProps> = ({
         </View>
       )}
 
-      <TouchableOpacity onPress={onPressDetails} style={styles.detailsButton}>
+      <TouchableOpacity
+        onPress={onPressDetails}
+        style={styles.detailsButton}
+        accessibilityRole="button"
+        accessibilityLabel={`Abrir detalhes da tarefa ${task.title}`}
+      >
         <Text style={styles.detailsText}>Detalhes</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={onDelete} style={styles.deleteButton}>
+      <TouchableOpacity
+        onPress={onDelete}
+        style={styles.deleteButton}
+        accessibilityRole="button"
+        accessibilityLabel={`Excluir tarefa ${task.title}`}
+      >
         <Text style={styles.deleteText}>✕</Text>
       </TouchableOpacity>
     </TouchableOpacity>

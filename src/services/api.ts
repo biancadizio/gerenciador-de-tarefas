@@ -18,6 +18,13 @@ interface RemoteTask {
   completed: boolean;
 }
 
+/**
+ * Builds the user-facing error message shown when an API request fails.
+ *
+ * @param error - Error thrown by fetch, axios, or another caller.
+ * @param fallbackMessage - Base Portuguese message for the failing operation.
+ * @returns A Portuguese message suitable for UI feedback.
+ */
 export function getApiErrorMessage(error: unknown, fallbackMessage: string): string {
   if (axios.isAxiosError(error) || error instanceof Error) {
     return `${fallbackMessage} Verifique sua conexão e tente novamente.`;
@@ -26,7 +33,17 @@ export function getApiErrorMessage(error: unknown, fallbackMessage: string): str
   return fallbackMessage;
 }
 
+/**
+ * Adapter for remote task data.
+ * Maps JSONPlaceholder responses into the local Task shape used by the app.
+ */
 export const apiService = {
+  /**
+   * Fetches the initial task list used when local storage is empty.
+   *
+   * @returns Remote tasks normalized with local default metadata.
+   * @throws Error with a Portuguese message when the request fails.
+   */
   fetchInitialTasks: async (): Promise<Task[]> => {
     try {
       const response = await fetch(`${BASE_URL}?_limit=5`);
@@ -53,6 +70,12 @@ export const apiService = {
     }
   },
 
+  /**
+   * Fetches remote task titles used by the sync hook.
+   *
+   * @returns Raw remote tasks from the API.
+   * @throws Error with a Portuguese message when synchronization fails.
+   */
   fetchRemoteTasks: async (): Promise<RemoteTask[]> => {
     try {
       const response = await axios.get<RemoteTask[]>(`${BASE_URL}?_limit=10`);

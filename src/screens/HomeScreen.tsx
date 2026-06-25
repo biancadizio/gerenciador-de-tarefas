@@ -24,6 +24,11 @@ import { useSyncTasks } from "../hooks/useSyncTasks";
 import { Task } from "../types/types";
 import { sanitizeTaskTitle, TASK_TITLE_MAX_LENGTH, validateTaskTitle } from "../utils/taskValidation";
 
+/**
+ * Main task management screen.
+ * Combines task creation, filters, calendar view, drag-and-drop ordering,
+ * detail editing, synchronization feedback, and notification-aware updates.
+ */
 const HomeScreen: React.FC = () => {
   const { tasks, loading, error, clearError, addTask, toggleTask, deleteTask, updateTask, reorderTasks } = useTaskList();
   const { syncing, syncError } = useSyncTasks(addTask, tasks.length, !loading && !error);
@@ -164,7 +169,12 @@ const HomeScreen: React.FC = () => {
         <View style={styles.feedbackContainer}>
           <Text style={styles.feedbackText}>{error || syncError}</Text>
           {error && (
-            <TouchableOpacity onPress={clearError} style={styles.feedbackButton}>
+            <TouchableOpacity
+              onPress={clearError}
+              style={styles.feedbackButton}
+              accessibilityRole="button"
+              accessibilityLabel="Fechar mensagem de erro"
+            >
               <Text style={styles.feedbackButtonText}>Ok</Text>
             </TouchableOpacity>
           )}
@@ -191,13 +201,22 @@ const HomeScreen: React.FC = () => {
           placeholderTextColor={theme.colors.completedText}
           maxLength={TASK_TITLE_MAX_LENGTH}
           onSubmitEditing={handleAddTask}
+          accessibilityLabel="Campo para adicionar nova tarefa"
+          accessibilityHint="Digite o título da tarefa e pressione adicionar"
         />
-        <TouchableOpacity style={styles.addButton} onPress={handleAddTask}>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={handleAddTask}
+          accessibilityRole="button"
+          accessibilityLabel="Adicionar tarefa"
+        >
           <Text style={styles.addButtonText}>+</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.calendarButton} 
           onPress={() => setShowCalendar(!showCalendar)}
+          accessibilityRole="button"
+          accessibilityLabel={showCalendar ? "Ocultar calendário" : "Mostrar calendário"}
         >
           <Text style={styles.calendarButtonText}>📅</Text> 
         </TouchableOpacity>
@@ -213,6 +232,7 @@ const HomeScreen: React.FC = () => {
             style={styles.picker}
             dropdownIconColor={theme.colors.text}
             mode="dropdown"
+            accessibilityLabel="Filtrar tarefas por prioridade"
           >
             <Picker.Item label="Todas Prioridades" value="" />
             <Picker.Item label="Urgente" value="urgent" />
@@ -231,6 +251,7 @@ const HomeScreen: React.FC = () => {
               style={styles.picker}
               dropdownIconColor={theme.colors.text}
               mode="dropdown"
+              accessibilityLabel="Filtrar tarefas por categoria"
             >
               <Picker.Item label="Todas Categorias" value="" />
               <Picker.Item label="Educação" value="educational" />
@@ -253,6 +274,7 @@ const HomeScreen: React.FC = () => {
             style={styles.picker}
             dropdownIconColor={theme.colors.text}
             mode="dropdown"
+            accessibilityLabel="Filtrar tarefas por tag"
           >
             <Picker.Item label="Todas Tags" value="" />
             {availableTags.map((tag) => (
@@ -271,6 +293,9 @@ const HomeScreen: React.FC = () => {
               key={status}
               style={[styles.statusFilterButton, active && styles.statusFilterButtonActive]}
               onPress={() => setFilterStatus(status)}
+              accessibilityRole="button"
+              accessibilityLabel={`Filtrar tarefas: ${labels[status]}`}
+              accessibilityState={{ selected: active }}
             >
               <Text style={[styles.statusFilterText, active && styles.statusFilterTextActive]}>
                 {labels[status]}
@@ -290,7 +315,11 @@ const HomeScreen: React.FC = () => {
           {selectedDay && (
             <Text style={styles.selectedDateText}>
               Tarefas para: {selectedDay.dateString}
-              <TouchableOpacity onPress={() => setSelectedDay(null)}>
+              <TouchableOpacity
+                onPress={() => setSelectedDay(null)}
+                accessibilityRole="button"
+                accessibilityLabel="Limpar filtro de data"
+              >
                 <Text style={styles.clearDateFilterText}> (Limpar filtro)</Text>
               </TouchableOpacity>
             </Text>
