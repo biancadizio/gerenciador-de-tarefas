@@ -1,5 +1,7 @@
 import { Task } from '../../types/types';
 
+import { storageService } from '../storageService';
+
 const store: Record<string, string> = {};
 
 jest.mock('@react-native-async-storage/async-storage', () => ({
@@ -9,8 +11,6 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
     return Promise.resolve();
   }),
 }));
-
-import { storageService } from '../storageService';
 
 const makeTask = (overrides: Partial<Task> = {}): Task => ({
   id: 1,

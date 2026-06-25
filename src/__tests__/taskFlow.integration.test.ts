@@ -1,5 +1,7 @@
 import { Task } from '../types/types';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 // ─── AsyncStorage mock ───────────────────────────────────────────────────────
 const store: Record<string, string> = {};
 
@@ -19,8 +21,6 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
 jest.mock('../services/api', () => ({
   fetchInitialTasks: jest.fn(() => Promise.resolve([])),
 }));
-
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // ─── Helpers (same logic as useTaskList) ─────────────────────────────────────
 const STORAGE_KEY = '@tasks';
