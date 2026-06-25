@@ -19,8 +19,12 @@ export function useTaskList() {
           setTasksState(apiTasks);
           await storageService.saveTasks(apiTasks);
         }
-      } catch {
-        setError('Erro ao carregar tarefas.');
+      } catch (loadError) {
+        const message = loadError instanceof Error
+          ? loadError.message
+          : 'Erro ao carregar tarefas.';
+        setError(message);
+        setTasksState([]);
       } finally {
         setLoading(false);
       }
@@ -31,8 +35,11 @@ export function useTaskList() {
   const persist = useCallback(async (updated: Task[]) => {
     try {
       await storageService.saveTasks(updated);
-    } catch {
-      setError('Erro ao salvar tarefas.');
+    } catch (saveError) {
+      const message = saveError instanceof Error
+        ? saveError.message
+        : 'Erro ao salvar tarefas.';
+      setError(message);
     }
   }, []);
 
@@ -84,5 +91,9 @@ export function useTaskList() {
     persist(reordered);
   }, [persist]);
 
-  return { tasks, loading, error, addTask, toggleTask, deleteTask, updateTask, reorderTasks };
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
+  return { tasks, loading, error, clearError, addTask, toggleTask, deleteTask, updateTask, reorderTasks };
 }
