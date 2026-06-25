@@ -1,12 +1,12 @@
-jest.mock('axios');
 import axios from 'axios';
+
+import { apiService } from '../api';
+jest.mock('axios');
 
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 const mockFetch = jest.fn();
 (globalThis as any).fetch = mockFetch;
-
-import { apiService } from '../api';
 
 beforeEach(() => {
   jest.clearAllMocks();

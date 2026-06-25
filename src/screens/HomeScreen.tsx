@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import { hs, vs, ms } from '../utils/responsive';
+import { hs, vs } from '../utils/responsive';
 
 import {
   View,
@@ -10,7 +10,7 @@ import {
   Text,
   StatusBar,
   ActivityIndicator,
-} from "react-native";
+ useWindowDimensions } from "react-native";
 
 import TaskItem from "../components/TaskItem";
 import { theme } from "../theme";
@@ -18,7 +18,6 @@ import DraggableFlatList from "react-native-draggable-flatlist";
 import TaskDetailsModal from "../components/TaskDetailsModal";
 import { Picker } from "@react-native-picker/picker";
 import Toast, { BaseToast } from 'react-native-toast-message';
-import { useWindowDimensions } from "react-native";
 import CalendarView from "./CalendarView";
 import { useTaskList } from "../hooks/useTaskList";
 import { useSyncTasks } from "../hooks/useSyncTasks";
@@ -366,8 +365,12 @@ const HomeScreen: React.FC = () => {
             onSave={(updatedTask) => {
               updateTask(updatedTask);
               setModalVisible(false);
+              setSelectedTask(null);
             }}
-            onClose={() => setModalVisible(false)}
+            onClose={() => {
+              setModalVisible(false);
+              setSelectedTask(null);
+            }}
             allTasks={tasks}
           />
         </>
