@@ -12,7 +12,7 @@ import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker'; 
 import { theme } from '../theme';
 import { Task } from '../types/types'; 
-import { sanitizeTaskTitle, TASK_TITLE_MAX_LENGTH, validateTaskTitle } from '../utils/taskValidation';
+import { sanitizeTaskTitle, TASK_TITLE_MAX_LENGTH } from '../utils/taskValidation';
 import { formatTaskTags, parseTaskTags, TASK_TAGS_MAX_LENGTH } from '../utils/taskTags';
 
 
@@ -39,6 +39,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
 
   // Quando o modal abre, inicializa os estados
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFormData(task);
     setTagsInput(formatTaskTags(task.tags));
 
@@ -158,14 +159,6 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
 
   // Ver questão da periodicidade
   
-  const handleDateChange = (event: any, selectedDate?: Date) => {
-    setShowDatePicker(false); 
-
-    if (selectedDate) {
-      const formattedDate = selectedDate.toISOString().split('T')[0];
-      setFormData({ ...formData, dueDate: formattedDate });
-    }
-  };
 
   return (
     <Modal

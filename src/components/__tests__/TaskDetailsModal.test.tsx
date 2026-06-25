@@ -1,5 +1,9 @@
+/* eslint-disable react/display-name */
 import React from 'react';
 import renderer from 'react-test-renderer';
+
+import TaskDetailsModal from '../TaskDetailsModal';
+import { Task } from '../../types/types';
 
 const createMockComponent = (name: string) => (props: any) => React.createElement('View', props, props.children);
 const PickerMock: any = createMockComponent('Picker');
@@ -45,10 +49,6 @@ jest.mock('../../utils/responsive', () => ({
   vs: (value: number) => value,
   ms: (value: number) => value,
 }));
-
-import { TextInput, TouchableOpacity, Text } from 'react-native';
-import TaskDetailsModal from '../TaskDetailsModal';
-import { Task } from '../../types/types';
 
 declare const global: any;
 
