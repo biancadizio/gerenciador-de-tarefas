@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Task } from '../types/types';
 import { storageService } from '../services/storageService';
 import { apiService } from '../services/api';
+import { cancelTaskNotification, rescheduleTaskNotification } from '../services/notificationService';
 
 export function useTaskList() {
   const [tasks, setTasksState] = useState<Task[]>([]);
@@ -51,6 +52,7 @@ export function useTaskList() {
       priority: 'no-urgency',
       type: 'others',
       tags: [],
+      notificationId: undefined,
     };
     setTasksState((prev) => {
       const updated = [...prev, newTask];
@@ -61,9 +63,13 @@ export function useTaskList() {
 
   const toggleTask = useCallback((id: number) => {
     setTasksState((prev) => {
+      const taskToToggle = prev.find((t) => t.id === id);
       const updated = prev.map((t) =>
-        t.id === id ? { ...t, completed: !t.completed } : t
+        t.id === id ? { ...t, completed: !t.completed, notificationId: !t.completed ? undefined : t.notificationId } : t
       );
+      if (taskToToggle && !taskToToggle.completed) {
+        cancelTaskNotification(taskToToggle.notificationId);
+      }
       persist(updated);
       return updated;
     });
@@ -71,16 +77,26 @@ export function useTaskList() {
 
   const deleteTask = useCallback((id: number) => {
     setTasksState((prev) => {
+      const deletedTask = prev.find((t) => t.id === id);
       const updated = prev.filter((t) => t.id !== id);
+      cancelTaskNotification(deletedTask?.notificationId);
       persist(updated);
       return updated;
     });
   }, [persist]);
 
-  const updateTask = useCallback((updatedTask: Task) => {
+  const updateTask = useCallback(async (updatedTask: Task) => {
+    let taskToPersist = updatedTask;
+
+    try {
+      taskToPersist = await rescheduleTaskNotification(updatedTask);
+    } catch {
+      setError('Erro ao agendar notificação da tarefa.');
+    }
+
     setTasksState((prev) => {
       const updated = prev.map((t) =>
-        t.id === updatedTask.id ? updatedTask : t
+        t.id === taskToPersist.id ? taskToPersist : t
       );
       persist(updated);
       return updated;
