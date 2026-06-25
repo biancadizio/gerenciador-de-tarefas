@@ -21,13 +21,22 @@ interface Task {
 }
 
 interface TaskItemProps {
+  /** Task data rendered in the list row. */
   task: Task;
+  /** Toggles the completed state. */
   onToggle: () => void;
+  /** Deletes the task. */
   onDelete: () => void;
+  /** Starts drag-and-drop reordering. */
   onLongPress: () => void;
+  /** Opens the details modal for editing. */
   onPressDetails: () => void;
 }
 
+/**
+ * Renders a single task row with completion, metadata, tags, priority,
+ * details, deletion, and drag-and-drop controls.
+ */
 const TaskItem: React.FC<TaskItemProps> = ({ 
   task, 
   onToggle, 
@@ -72,8 +81,6 @@ const TaskItem: React.FC<TaskItemProps> = ({
           </View>
         )}
       </View>
-      {/* Fim da MUDANÇA 2 e MUDANÇA 3 */}
-
       {task.priority && (
         <View style={[
           styles.priorityTag,

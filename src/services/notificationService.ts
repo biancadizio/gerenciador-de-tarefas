@@ -15,6 +15,13 @@ Notifications.setNotificationHandler({
   }),
 });
 
+/**
+ * Requests local notification permission when needed.
+ * Web is treated as unsupported because local notifications are only used on
+ * native platforms in this app.
+ *
+ * @returns True when notifications can be scheduled.
+ */
 async function ensureNotificationPermissions(): Promise<boolean> {
   if (Platform.OS === 'web') return false;
 
@@ -26,6 +33,10 @@ async function ensureNotificationPermissions(): Promise<boolean> {
   return finalPermissions.granted;
 }
 
+/**
+ * Creates the Android notification channel used for deadline reminders.
+ * iOS does not require channel configuration.
+ */
 async function ensureAndroidChannel(): Promise<void> {
   if (Platform.OS !== 'android') return;
 
@@ -35,12 +46,25 @@ async function ensureAndroidChannel(): Promise<void> {
   });
 }
 
+/**
+ * Cancels a previously scheduled task notification.
+ *
+ * @param notificationId - Identifier returned by Expo when the reminder was scheduled.
+ */
 export async function cancelTaskNotification(notificationId?: string): Promise<void> {
   if (!notificationId || Platform.OS === 'web') return;
 
   await Notifications.cancelScheduledNotificationAsync(notificationId);
 }
 
+/**
+ * Schedules a local notification for a task due date.
+ * Completed tasks, tasks without a future due date, and unsupported platforms
+ * are ignored.
+ *
+ * @param task - Task that may receive a deadline reminder.
+ * @returns The scheduled notification id, or undefined when nothing was scheduled.
+ */
 export async function scheduleTaskNotification(task: Task): Promise<string | undefined> {
   const notificationDate = getTaskNotificationDate(task.dueDate);
 
@@ -71,6 +95,12 @@ export async function scheduleTaskNotification(task: Task): Promise<string | und
   });
 }
 
+/**
+ * Replaces the task's existing notification with one matching its current data.
+ *
+ * @param task - Task being edited.
+ * @returns The task with its refreshed notification id.
+ */
 export async function rescheduleTaskNotification(task: Task): Promise<Task> {
   await cancelTaskNotification(task.notificationId);
   const notificationId = await scheduleTaskNotification(task);

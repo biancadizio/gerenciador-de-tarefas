@@ -25,6 +25,11 @@ import { useSyncTasks } from "../hooks/useSyncTasks";
 import { Task } from "../types/types";
 import { sanitizeTaskTitle, TASK_TITLE_MAX_LENGTH, validateTaskTitle } from "../utils/taskValidation";
 
+/**
+ * Main task management screen.
+ * Combines task creation, filters, calendar view, drag-and-drop ordering,
+ * detail editing, synchronization feedback, and notification-aware updates.
+ */
 const HomeScreen: React.FC = () => {
   const { tasks, loading, error, clearError, addTask, toggleTask, deleteTask, updateTask, reorderTasks } = useTaskList();
   const { syncing, syncError } = useSyncTasks(addTask, tasks.length, !loading && !error);

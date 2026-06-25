@@ -4,6 +4,13 @@ import { storageService } from '../services/storageService';
 import { apiService } from '../services/api';
 import { cancelTaskNotification, rescheduleTaskNotification } from '../services/notificationService';
 
+/**
+ * Central hook for task state management.
+ * It loads initial data, persists every mutation, and coordinates deadline
+ * notification scheduling when tasks are edited, completed, or removed.
+ *
+ * @returns Task state, loading/error flags, and mutation handlers used by screens.
+ */
 export function useTaskList() {
   const [tasks, setTasksState] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,6 +40,11 @@ export function useTaskList() {
     load();
   }, []);
 
+  /**
+   * Saves the latest task list snapshot to local storage.
+   *
+   * @param updated - Full task list after a mutation.
+   */
   const persist = useCallback(async (updated: Task[]) => {
     try {
       await storageService.saveTasks(updated);
@@ -44,6 +56,11 @@ export function useTaskList() {
     }
   }, []);
 
+  /**
+   * Creates a new pending task using default metadata.
+   *
+   * @param title - Already validated task title.
+   */
   const addTask = useCallback((title: string) => {
     const newTask: Task = {
       id: Date.now(),
@@ -61,6 +78,11 @@ export function useTaskList() {
     });
   }, [persist]);
 
+  /**
+   * Toggles completion and cancels pending notifications when a task is done.
+   *
+   * @param id - Task identifier.
+   */
   const toggleTask = useCallback((id: number) => {
     setTasksState((prev) => {
       const taskToToggle = prev.find((t) => t.id === id);
@@ -75,6 +97,11 @@ export function useTaskList() {
     });
   }, [persist]);
 
+  /**
+   * Removes a task and cancels its scheduled reminder if one exists.
+   *
+   * @param id - Task identifier.
+   */
   const deleteTask = useCallback((id: number) => {
     setTasksState((prev) => {
       const deletedTask = prev.find((t) => t.id === id);
@@ -85,6 +112,11 @@ export function useTaskList() {
     });
   }, [persist]);
 
+  /**
+   * Persists task edits and refreshes the local notification for its due date.
+   *
+   * @param updatedTask - Task data submitted by the details modal.
+   */
   const updateTask = useCallback(async (updatedTask: Task) => {
     let taskToPersist = updatedTask;
 
@@ -103,6 +135,11 @@ export function useTaskList() {
     });
   }, [persist]);
 
+  /**
+   * Persists the order produced by drag-and-drop.
+   *
+   * @param reordered - Task list in the new display order.
+   */
   const reorderTasks = useCallback((reordered: Task[]) => {
     setTasksState(reordered);
     persist(reordered);

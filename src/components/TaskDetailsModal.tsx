@@ -18,13 +18,22 @@ import { formatTaskTags, parseTaskTags, TASK_TAGS_MAX_LENGTH } from '../utils/ta
 
 
 interface TaskDetailsModalProps {
+  /** Controls whether the modal is visible. */
   visible: boolean;
+  /** Task currently being edited. */
   task: Task;
+  /** Saves the edited task back to the task list hook. */
   onSave: (updatedTask: Task) => void;
+  /** Closes the modal without persisting local form edits. */
   onClose: () => void;
+  /** Full task list, available for relationship-oriented features. */
   allTasks: Task[];
 }
 
+/**
+ * Modal form used to edit task metadata such as title, priority, deadline,
+ * category, tags, recurrence, and details.
+ */
 const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
   visible,
   task,
