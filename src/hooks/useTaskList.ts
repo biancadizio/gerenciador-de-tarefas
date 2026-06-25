@@ -50,6 +50,7 @@ export function useTaskList() {
       completed: false,
       priority: 'no-urgency',
       type: 'others',
+      tags: [],
     };
     setTasksState((prev) => {
       const updated = [...prev, newTask];

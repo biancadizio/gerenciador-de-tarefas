@@ -13,6 +13,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { theme } from '../theme';
 import { Task } from '../types/types'; 
 import { sanitizeTaskTitle, TASK_TITLE_MAX_LENGTH, validateTaskTitle } from '../utils/taskValidation';
+import { formatTaskTags, parseTaskTags, TASK_TAGS_MAX_LENGTH } from '../utils/taskTags';
 
 
 
@@ -34,10 +35,12 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
   const [formData, setFormData] = useState<Task>(task);  
   const [customValue, setCustomValue] = useState(''); // Armazena valor personalizado digitado pelo usuário (em dias)
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [tagsInput, setTagsInput] = useState('');
 
   // Quando o modal abre, inicializa os estados
   useEffect(() => {
     setFormData(task);
+    setTagsInput(formatTaskTags(task.tags));
 
     // Se a task tiver um tipo não padronizado, tratamos como ''
     if (!['0', '1', '7', '30', '180', '365'].includes(task.recurrence || '')) {
@@ -74,6 +77,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
     onSave({
       ...formData,
       title: sanitizeTaskTitle(formData.title),
+      tags: parseTaskTags(tagsInput),
     });
   };
 
@@ -155,6 +159,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
   const handleClose = () => {
     setFormData(task); // Reset form to original task data
     setCustomValue('');
+    setTagsInput(formatTaskTags(task.tags));
     onClose(); // Close modal
   };
 
@@ -277,6 +282,15 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
               <Picker.Item label="Projetos" value="projects" />
               <Picker.Item label="Outros" value="others" />
             </Picker>
+
+          <TextInput
+            style={styles.input}
+            placeholder="Tags"
+            placeholderTextColor={theme.colors.completedText}
+            value={tagsInput}
+            onChangeText={setTagsInput}
+            maxLength={TASK_TAGS_MAX_LENGTH}
+          />
 
 
           <Picker
